@@ -12,37 +12,93 @@ The key requirement for an Indexer to earn indexing rewards is to submit a valid
 
 ## Getting Started
 
-Before you follow any of the instructions below, please make sure you have a Graphcast Operator address registered for your on-chain Indexer address.
+Before you follow any of the instructions below, please make sure you have a Graphcast ID registered for your on-chain Indexer address.
 
 :::tip
-You can connect a Graphcast Operator address to your Indexer address (with a 1:1 relationship) using our very own [Registry contract](https://goerli.etherscan.io/address/0xBFdA8191D1ec09bB8ADc138DAbf413d00DAfb6c8) (on Goerli). You need to use your Indexer wallet to call the `setGossipOperator` function, providing the address you wish to use as an operator.
+You can connect a Graphcast ID address to your Indexer address (with a 1:1 relationship) using our very own **Registry contract**, we have [one for mainnet](https://etherscan.io/address/0x89f97698d6006f25570cd2e31737d3d22aedcbcf) and [one for testnet](https://goerli.etherscan.io/address/0xe88461436D30CAc2d69b70871EC2cdDC32083aed) (on Goerli). You need to use your Indexer or Operator wallet to first call the `setStaking` function, providing the address of the staking contract, and then call the `setGraphcastIDFor` function, providing the Indexer address, as well as the address you wish to use as a Graphcast ID.
 :::
 
-### Docker
-
-#### Using pre-built image
-
-This is the option you should go for if you're just looking to run the POI Radio as part of your Indexing stack.
+### Quickstart
 
 ##### Steps
 
-1. Pull the image
+1. Pull the POI Radio image
 
 ```bash
 docker pull ghcr.io/graphops/poi-radio:latest
 ```
 
-2. Run the image, providing the required environment variables
+2. Run the image, providing the required environment variables. Here's a sample testnet configuration:
 
 ```bash
-docker run -e REGISTRY_SUBGRAPH="https://api.thegraph.com/subgraphs/name/hopeyen/gossip-registry-test" -e NETWORK_SUBGRAPH="https://gateway.testnet.thegraph.com/network" -e GRAPH_NODE_STATUS_ENDPOINT="http://host.docker.internal:8030/graphql" -e PRIVATE_KEY="your operator address private key" -e ETH_NODE="an ethereum rpc node url" ghcr.io/graphops/poi-radio
+docker run \
+-e ETH_NODE="ETH_NODE" \
+-e PRIVATE_KEY="GRAPHCAST_ID_PRIVATE_KEY" \
+-e GRAPH_NODE_STATUS_ENDPOINT="http://host.docker.internal:8030/graphql" \
+-e REGISTRY_SUBGRAPH="https://api.thegraph.com/subgraphs/name/hopeyen/graphcast-registry-goerli" \
+-e NETWORK_SUBGRAPH="https://gateway.testnet.thegraph.com/network" \
+-e GRAPHCAST_NETWORK="testnet" \
+-e RUST_LOG="off,hyper=off,graphcast_sdk=debug,poi_radio=debug" \
+ghcr.io/graphops/poi-radio
 ```
 
 :::tip
-The `PRIVATE_KEY` here is for your Graphcast Operator address, which is entirely separate from your Indexer Operator address. The Graphcast Operator address is authorised using our [Registry contract](https://goerli.etherscan.io/address/0xBFdA8191D1ec09bB8ADc138DAbf413d00DAfb6c8). You need to use your Indexer wallet to call the `setGossipOperator` function, providing the operator address.
+The `PRIVATE_KEY` here is for your Graphcast ID. The Graphcast ID address is authorised using our **Registry contract**, we have [one for mainnet](https://etherscan.io/address/0x89f97698d6006f25570cd2e31737d3d22aedcbcf) and [one for testnet](https://goerli.etherscan.io/address/0xe88461436D30CAc2d69b70871EC2cdDC32083aed) (on Goerli). You need to use your Indexer or Operator wallet to first call the `setStaking` function, providing the address of the staking contract, and then call the `setGraphcastIDFor` function, providing the Indexer address, as well as the address you wish to use as a Graphcast ID.
 :::
 
-To see the full list of environment variables you can provide, check out the [Configuration](#configuration) section.
+In the configuration table below is the full list of environment variables you can use, along with example values.
+
+## Configuration
+
+### Mainnet
+
+| Name                                  | Example                                                                                  |
+| ------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `ETH_NODE`                            | `https://mainnet.infura.io/v3/<PROJECT_ID>`                                              |
+| `PRIVATE_KEY`                         | `0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef`                       |
+| `GRAPH_NODE_STATUS_ENDPOINT`          | `http://localhost:8030/graphql` or `http://host.docker.internal:8030/graphql` for Docker |
+| `REGISTRY_SUBGRAPH`                   | `https://thegraph.com/hosted-service/subgraph/hopeyen/graphcast-registry-mainnet`        |
+| `NETWORK_SUBGRAPH`                    | `https://gateway.testnet.thegraph.com/network`                                           |
+| `GRAPHCAST_NETWORK`                   | `testnet`                                                                                |
+| `COLLECT_MESSAGE_DURATION` (Optional) | Defaults to 30 seconds                                                                   |
+| `WAKU_HOST` (Optional)                | Defaults to `127.0.0.1`                                                                  |
+| `WAKU_PORT` (Optional)                | Defaults to `8546`                                                                       |
+| `WAKU_NODE_KEY` (Optional)            | Defaults to `None`                                                                       |
+| `BOOT_NODE_ADDRESSES` (Optional)      | "addr1, addr2, addr3" (defaults to `None`)                                               |
+| `SLACK_TOKEN` (Optional)              | `xoxp-0123456789-0123456789-0123456789-0123456789` (defaults to `None`)                  |
+| `SLACK_WEBHOOK` (Optional)            | `https://hooks.slack.com/services/<ID>/<ID>/<TOKEN>` (defaults to `None`)                |
+| `RUST_LOG` (Optional)                 | `graphcast_sdk=debug,poi_radio=debug`, defaults to `info` for everything                 |
+
+### Testnet (Goerli)
+
+| Name                                  | Example                                                                                  |
+| ------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `ETH_NODE`                            | `https://goerli.infura.io/v3/<PROJECT_ID>`                                               |
+| `PRIVATE_KEY`                         | `0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef`                       |
+| `GRAPH_NODE_STATUS_ENDPOINT`          | `http://localhost:8030/graphql` or `http://host.docker.internal:8030/graphql` for Docker |
+| `REGISTRY_SUBGRAPH`                   | `https://api.thegraph.com/subgraphs/name/hopeyen/graphcast-registry-goerli`              |
+| `NETWORK_SUBGRAPH`                    | `https://gateway.testnet.thegraph.com/network`                                           |
+| `GRAPHCAST_NETWORK`                   | `testnet`                                                                                |
+| `COLLECT_MESSAGE_DURATION` (Optional) | Defaults to 30 seconds                                                                   |
+| `WAKU_HOST` (Optional)                | Defaults to `127.0.0.1`                                                                  |
+| `WAKU_PORT` (Optional)                | Defaults to `8546`                                                                       |
+| `WAKU_NODE_KEY` (Optional)            | Defaults to `None`                                                                       |
+| `BOOT_NODE_ADDRESSES` (Optional)      | "addr1, addr2, addr3" (defaults to `None`)                                               |
+| `SLACK_TOKEN` (Optional)              | `xoxp-0123456789-0123456789-0123456789-0123456789` (defaults to `None`)                  |
+| `SLACK_WEBHOOK` (Optional)            | `https://hooks.slack.com/services/<ID>/<ID>/<TOKEN>` (defaults to `None`)                |
+| `RUST_LOG` (Optional)                 | `graphcast_sdk=debug,poi_radio=debug`, defaults to `info` for everything                 |
+
+`SLACK_TOKEN` and `SLACK_WEBHOOK` are used for POI divergence notifications in a Slack channel.
+
+`WAKU_HOST` and `WAKU_PORT` specify where the Graphcast node (included in all Radios) runs. If you want to run multiple Radios, or multiple instances of the same Radio, you should run them on different ports.
+
+If you want to customize the log level, you can toggle `RUST_LOG` environment variable. Here's an example configuration to get more verbose logging:
+
+```
+RUST_LOG="off,hyper=off,graphcast_sdk=debug,poi_radio=debug"
+```
+
+## Alternative options for using the POI Radio
 
 #### Building the image using the Dockerfile locally
 
@@ -87,29 +143,6 @@ To have full control over the POI Radio code and run it directly on your machine
 ```
 cargo run
 ```
-
-## Configuration
-
-### Testnet (Goerli)
-
-| Name                         | Example                                                                   |
-| ---------------------------- | ------------------------------------------------------------------------- |
-| `ETH_NODE`                   | `https://goerli.infura.io/v3/<PROJECT_ID>`                                |
-| `PRIVATE_KEY`                | `0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef`      |
-| `GRAPH_NODE_STATUS_ENDPOINT` | `http://localhost:8030/graphql`                                         |
-| `REGISTRY_SUBGRAPH`          | `https://api.thegraph.com/subgraphs/name/hopeyen/gossip-registry-test`    |
-| `NETWORK_SUBGRAPH`           | `https://gateway.testnet.thegraph.com/network`                            |
-| `WAKU_HOST` (Optional)       | Defaults to `127.0.0.1`                                                   |
-| `WAKU_PORT` (Optional)       | Defaults to `8546`                                                        |
-| `SLACK_TOKEN` (Optional)     | `xoxp-0123456789-0123456789-0123456789-0123456789` (defaults to `None`)   |
-| `SLACK_WEBHOOK` (Optional)   | `https://hooks.slack.com/services/<ID>/<ID>/<TOKEN>` (defaults to `None`) |
-| `LOG_LEVEL` (Optional)       | Defaults to `INFO`                                                        |
-
-`SLACK_TOKEN` and `SLACK_WEBHOOK` are used for POI divergence notifications in a Slack channel.
-
-`WAKU_HOST` and `WAKU_PORT` specify where the Graphcast node (included in all Radios) runs. If you want to run multiple Radios, or multiple instances of the same Radio, you should run them on different ports. 
-
-If you want to customize the log level, you can set `LOG_LEVEL` to one of `ERROR`, `WARN`, `DEBUG`, `TRACE`.
 
 ## Workflow
 
